@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infinite Power Tower Visualizer</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --line:#30363d;
+    --txt:#e6edf3; --muted:#8b949e; --accent:#58a6ff;
+    --good:#3fb950; --warn:#f0883e; --bad:#f85149;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    line-height:1.5;
+  }
+  .wrap{max-width:1100px; margin:0 auto; padding:28px 20px 80px;}
+  h1{font-size:26px; margin:0 0 4px;}
+  .sub{color:var(--muted); margin:0 0 24px; font-size:15px;}
+  code{background:#1f2630; padding:2px 6px; border-radius:5px; font-size:.92em;}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  @media(max-width:860px){.grid{grid-template-columns:1fr;}}
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px;}
+  .panel h2{font-size:15px; margin:0 0 16px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px;}
+  label{display:block; font-size:14px; margin-bottom:8px; color:var(--muted);}
+  input[type=range]{width:100%; accent-color:var(--accent);}
+  .big{font-size:42px; font-weight:700; font-variant-numeric:tabular-nums;}
+  .row{display:flex; justify-content:space-between; align-items:baseline; padding:10px 0; border-bottom:1px solid var(--line);}
+  .row:last-child{border-bottom:none;}
+  .row .k{color:var(--muted);}
+  .row .v{font-size:20px; font-weight:600; font-variant-numeric:tabular-nums;}
+  canvas{width:100%; display:block; background:#0a0e14; border-radius:8px;}
+  .badge{display:inline-block; padding:3px 10px; border-radius:20px; font-size:13px; font-weight:600;}
+  .badge.good{background:rgba(63,185,80,.15); color:var(--good);}
+  .badge.bad{background:rgba(248,81,73,.15); color:var(--bad);}
+  .note{font-size:13px; color:var(--muted); margin-top:14px;}
+  .ctrl-val{color:var(--accent); font-weight:700; font-variant-numeric:tabular-nums;}
+  .answers .v{color:var(--accent);}
+  .formula{font-size:18px; text-align:center; margin:6px 0 18px; font-variant-numeric:tabular-nums;}
+  .tower{font-family:"SF Mono",Menlo,monospace; color:var(--accent); word-break:break-all;}
+  .explain h3{font-size:16px; margin:22px 0 6px; color:var(--txt);}
+  .explain h3:first-of-type{margin-top:4px;}
+  .explain p{font-size:14.5px; color:#c9d3de; margin:6px 0;}
+  .explain .m{font-family:"SF Mono",Menlo,monospace; color:var(--accent); white-space:nowrap;}
+  .explain em{color:var(--warn); font-style:italic;}
+  .explain b{color:var(--good);}
+  .eq{background:#0a0e14; border:1px solid var(--line); border-left:3px solid var(--accent);
+      border-radius:6px; padding:12px 16px; margin:12px 0; font-family:"SF Mono",Menlo,monospace;
+      font-size:16px; text-align:center; color:var(--txt); line-height:1.9;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Infinite Power Tower &nbsp;<span style="color:var(--accent)">x<sup>x<sup>x<sup>x···</sup></sup></sup> = a</span></h1>
+  <p class="sub">Choose the value the tower converges to, watch it build up, and read off the powers of x.</p>
+
+  <div class="grid">
+    <!-- LEFT: controls + answers -->
+    <div class="panel">
+      <h2>Target value &nbsp;a</h2>
+      <label>The tower equals: <span class="ctrl-val" id="aVal">2.000</span></label>
+      <input type="range" id="aSlider" min="0.07" max="2.718281828" step="0.001" value="2">
+
+      <div class="formula">
+        Since the tower <i>is</i> its own exponent: &nbsp; x<sup>a</sup> = a &nbsp;⇒&nbsp;
+        <b>x = a<sup>1/a</sup></b>
+      </div>
+
+      <div class="row">
+        <span class="k">Required base &nbsp;x</span>
+        <span class="v" id="xVal">1.4142</span>
+      </div>
+      <div class="row" style="margin-top:6px;">
+        <span class="k">Convergence</span>
+        <span id="convBadge" class="badge good">converges ✓</span>
+      </div>
+
+      <h2 style="margin-top:26px;">Answers</h2>
+      <div class="answers">
+        <div class="row"><span class="k">x</span><span class="v" id="ansX">1.41421</span></div>
+        <div class="row"><span class="k">x²</span><span class="v" id="ansX2">2.00000</span></div>
+        <div class="row"><span class="k">x³</span><span class="v" id="ansX3">2.82843</span></div>
+      </div>
+      <p class="note" id="note"></p>
+    </div>
+
+    <!-- RIGHT: visualization -->
+    <div class="panel">
+      <h2>Building the tower</h2>
+      <canvas id="conv" width="520" height="240"></canvas>
+      <p class="note">Each point is one more level of the tower:
+        <code>t₁ = x</code>, <code>t₂ = x^x</code>, <code>t₃ = x^x^x</code>, … converging to <span class="ctrl-val" id="aVal2">a</span>.</p>
+      <div class="tower" id="towerText" style="margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <div class="panel explain" style="margin-top:20px;">
+    <h2>The math, step by step</h2>
+
+    <h3>1. The self-referential trick</h3>
+    <p>Write the tower as <span class="m">y = x<sup>x<sup>x<sup>x···</sup></sup></sup></span>. Look at the exponent sitting on top of the
+    bottom <span class="m">x</span>: it is <i>another full copy</i> of the same infinite tower. So the exponent equals <span class="m">y</span> itself:</p>
+    <div class="eq">y = x<sup>(x<sup>x<sup>···</sup></sup>)</sup> = x<sup>y</sup></div>
+    <p>That one observation collapses an infinite expression into a single equation: <span class="m">x<sup>y</sup> = y</span>.</p>
+
+    <h3>2. Solving for the base x</h3>
+    <p>We are told the tower converges to some target <span class="m">a</span>, i.e. <span class="m">y = a</span>. Substitute and solve for <span class="m">x</span>:</p>
+    <div class="eq">x<sup>a</sup> = a &nbsp;⟹&nbsp; x = a<sup>1/a</sup></div>
+    <p>So for <b>any</b> target <span class="m">a</span> you can find the base that produces it. For <span class="m">a = 2</span>:
+    <span class="m">x = 2<sup>1/2</sup> = √2 ≈ 1.41421</span>.</p>
+
+    <h3>3. Reading off the powers</h3>
+    <p>Once you have <span class="m">x = a<sup>1/a</sup></span>, the requested powers follow directly — and they have clean closed forms:</p>
+    <div class="eq">
+      x &nbsp;=&nbsp; a<sup>1/a</sup><br>
+      x<sup>2</sup> &nbsp;=&nbsp; a<sup>2/a</sup><br>
+      x<sup>3</sup> &nbsp;=&nbsp; a<sup>3/a</sup>
+    </div>
+    <p>Notice <span class="m">x<sup>a</sup> = a</span> by construction, so when <span class="m">a = 2</span> the square lands exactly on the target:
+    <span class="m">x<sup>2</sup> = 2</span>. The cube is <span class="m">x<sup>3</sup> = 2<sup>3/2</sup> = 2√2 ≈ 2.82843</span>.</p>
+
+    <h3>4. When does the tower actually converge?</h3>
+    <p>Not every base works. The infinite tower settles to a finite value only when</p>
+    <div class="eq">e<sup>−e</sup> ≤ x ≤ e<sup>1/e</sup> &nbsp;&nbsp;(≈ 0.0660 ≤ x ≤ 1.4447)</div>
+    <p>which in terms of the target means <span class="m">1/e ≤ a ≤ e</span> (≈ 0.368 to 2.718). The upper limit <span class="m">e<sup>1/e</sup></span> is the
+    tallest base that still converges, and it produces the largest possible tower value <span class="m">a = e</span>. Push <span class="m">x</span> any higher and the
+    iteration <span class="m">t ↦ x<sup>t</sup></span> runs off to infinity — that's the red <i>diverges</i> badge.</p>
+
+    <h3>5. The √2 paradox (why 2 and not 4)</h3>
+    <p>Here's the classic puzzle. The equation <span class="m">x<sup>a</sup> = a</span> with <span class="m">x = √2</span> is satisfied by
+    <em>two</em> values: <span class="m">a = 2</span> <i>and</i> <span class="m">a = 4</span> (since <span class="m">√2<sup>2</sup>=2</span> and <span class="m">√2<sup>4</sup>=4</span>).
+    So does the tower equal 2 or 4?</p>
+    <p>The answer is <b>2</b>. The tower is built by repeatedly applying <span class="m">t ↦ √2<sup>&nbsp;t</sup></span>, and a value is only the
+    <i>real</i> answer if that iteration is <b>stable</b> there — small nudges must shrink back, which requires the slope
+    <span class="m">|x<sup>t</sup>·ln x| &lt; 1</span> at the fixed point. At <span class="m">a = 2</span> the slope is <span class="m">ln 2 ≈ 0.69 &lt; 1</span> ✓ (stable, an
+    <i>attractor</i>); at <span class="m">a = 4</span> the slope is <span class="m">2·ln 2 ≈ 1.39 &gt; 1</span> ✗ (unstable, a <i>repeller</i>). Starting from
+    <span class="m">x</span> and climbing, you always fall into the lower, stable root. That's why the chart above always converges to 2.</p>
+    <p class="note" style="margin-top:14px;">This is also why the curve below folds back on itself: each value of <span class="m">a</span> below the peak is reached by two bases,
+    but only the one in the green band gives a stable, convergent tower.</p>
+  </div>
+
+  <div class="panel" style="margin-top:20px;">
+    <h2>The map &nbsp; a = x<sup>1/x</sup> &nbsp;(why √2 gives both 2 and 4)</h2>
+    <canvas id="map" width="1040" height="260"></canvas>
+    <p class="note">The curve <code>a = x<sup>1/x</sup></code> peaks at <code>x = e ≈ 2.718</code>, where <code>a = e<sup>1/e</sup> ≈ 1.4447</code> — the largest value an infinite tower can reach.
+      The famous twist: <code>x = √2</code> makes the tower converge to <b>2</b>, even though √2<sup>4</sup>=4 also "solves" x<sup>a</sup>=a. Only the lower root is stable.</p>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const E = Math.E, INV_E = 1/Math.E;
+// convergence window for x: [e^-e, e^(1/e)]  ->  in terms of a: a in [1/e, e]
+const A_MIN = INV_E, A_MAX = E;
+
+function fmt(n,d=5){ return Number.isFinite(n)? n.toFixed(d) : "—"; }
+
+// iterate the tower t -> x^t starting at x, return array of partial values
+function towerSeq(x, n=40){
+  const seq=[]; let t=x;
+  for(let i=0;i<n;i++){ seq.push(t); t = Math.pow(x,t); if(!Number.isFinite(t)) break; }
+  return seq;
+}
+
+function drawConv(x, target){
+  const c=$('conv'), ctx=c.getContext('2d');
+  const W=c.width,H=c.height,pad=30;
+  ctx.clearRect(0,0,W,H);
+  const seq=towerSeq(x,40);
+  const ymax=Math.max(target*1.25, ...seq.filter(Number.isFinite), 1.2);
+  const ymin=0;
+  const X=i=> pad + i/(seq.length-1)*(W-2*pad);
+  const Y=v=> H-pad - (v-ymin)/(ymax-ymin)*(H-2*pad);
+  // target line
+  ctx.strokeStyle='#3fb95066'; ctx.setLineDash([5,4]); ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(pad,Y(target)); ctx.lineTo(W-pad,Y(target)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#3fb950'; ctx.font='12px monospace';
+  ctx.fillText('a = '+fmt(target,3), W-pad-78, Y(target)-6);
+  // axes baseline
+  ctx.strokeStyle='#30363d'; ctx.beginPath(); ctx.moveTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.stroke();
+  // curve
+  ctx.strokeStyle='#58a6ff'; ctx.lineWidth=2; ctx.beginPath();
+  seq.forEach((v,i)=>{ const px=X(i),py=Y(v); i?ctx.lineTo(px,py):ctx.moveTo(px,py); });
+  ctx.stroke();
+  // points
+  seq.forEach((v,i)=>{ ctx.fillStyle= i<14?'#58a6ff':'#2a4a6e'; ctx.beginPath(); ctx.arc(X(i),Y(v),i<14?3:2,0,7); ctx.fill(); });
+}
+
+function drawMap(curX, curA){
+  const c=$('map'), ctx=c.getContext('2d');
+  const W=c.width,H=c.height,pad=36;
+  ctx.clearRect(0,0,W,H);
+  const xlo=0.1, xhi=4, alo=0, ahi=E*1.05;
+  const PX=x=> pad + (x-xlo)/(xhi-xlo)*(W-2*pad);
+  const PY=a=> H-pad - (a-alo)/(ahi-alo)*(H-2*pad);
+  // grid + axis labels
+  ctx.strokeStyle='#21262d'; ctx.fillStyle='#8b949e'; ctx.font='11px monospace';
+  for(let gx=1;gx<=4;gx++){ const px=PX(gx); ctx.beginPath();ctx.moveTo(px,pad);ctx.lineTo(px,H-pad);ctx.stroke(); ctx.fillText('x='+gx,px-12,H-pad+16);}
+  for(let ga=1;ga<=2;ga++){ const py=PY(ga); ctx.beginPath();ctx.moveTo(pad,py);ctx.lineTo(W-pad,py);ctx.stroke(); ctx.fillText('a='+ga,4,py+4);}
+  // convergence band for x in [e^-e, e^1/e]
+  ctx.fillStyle='rgba(63,185,80,.07)';
+  ctx.fillRect(PX(Math.exp(-E)),pad, PX(Math.exp(INV_E))-PX(Math.exp(-E)), H-2*pad);
+  // curve a = x^(1/x)
+  ctx.strokeStyle='#58a6ff'; ctx.lineWidth=2; ctx.beginPath();
+  let first=true;
+  for(let px=pad;px<=W-pad;px++){
+    const x=xlo+(px-pad)/(W-2*pad)*(xhi-xlo);
+    const a=Math.pow(x,1/x);
+    const py=PY(a); first?(ctx.moveTo(px,py),first=false):ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  // peak at x=e
+  const peakA=Math.pow(E,1/E);
+  ctx.fillStyle='#f0883e'; ctx.beginPath(); ctx.arc(PX(E),PY(peakA),4,0,7); ctx.fill();
+  ctx.fillText('peak e^(1/e)≈1.4447 at x=e', PX(E)-30, PY(peakA)-10);
+  // current point
+  ctx.fillStyle='#f85149'; ctx.beginPath(); ctx.arc(PX(curX),PY(curA),5,0,7); ctx.fill();
+  ctx.strokeStyle='#f8514955'; ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(PX(curX),H-pad);ctx.lineTo(PX(curX),PY(curA));ctx.lineTo(pad,PY(curA));ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function towerStr(x){
+  const v=fmt(x,4);
+  return `${v} ^ ${v} ^ ${v} ^ ${v} ^ ${v} ^ ⋯`;
+}
+
+function update(){
+  const a=parseFloat($('aSlider').value);
+  const x=Math.pow(a,1/a);          // base required so tower = a
+  const converges = a>=A_MIN-1e-9 && a<=A_MAX+1e-9;
+
+  $('aVal').textContent=fmt(a,3);
+  $('aVal2').textContent=fmt(a,3);
+  $('xVal').textContent=fmt(x,5);
+  $('ansX').textContent=fmt(x,5);
+  $('ansX2').textContent=fmt(x*x,5);
+  $('ansX3').textContent=fmt(x*x*x,5);
+
+  const b=$('convBadge');
+  if(converges){ b.className='badge good'; b.textContent='converges ✓'; }
+  else { b.className='badge bad'; b.textContent='diverges ✗'; }
+
+  // friendly note for nice numbers
+  let note='';
+  if(Math.abs(a-2)<0.01) note='Classic case: x = √2, and the tower converges to 2 (not 4 — the upper root is unstable).';
+  else if(Math.abs(a-1)<0.01) note='a = 1 forces x = 1, a trivial tower.';
+  else if(a>A_MAX) note='Above a = e the tower diverges — no real base can sustain it.';
+  else if(a<A_MIN) note='Below a = 1/e the iteration no longer settles to a single value.';
+  $('note').textContent=note;
+
+  $('towerText').textContent=towerStr(x);
+
+  drawConv(x, a);
+  drawMap(x, a);
+}
+
+$('aSlider').addEventListener('input',update);
+update();
+</script>
+</body>
+</html>
