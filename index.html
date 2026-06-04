@@ -11,6 +11,7 @@
     --good:#3fb950; --warn:#f0883e; --bad:#f85149;
   }
   *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
   body{
     margin:0; background:var(--bg); color:var(--txt);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
@@ -49,10 +50,18 @@
   .eq{background:#0a0e14; border:1px solid var(--line); border-left:3px solid var(--accent);
       border-radius:6px; padding:12px 16px; margin:12px 0; font-family:"SF Mono",Menlo,monospace;
       font-size:16px; text-align:center; color:var(--txt); line-height:1.9;}
+  .deeplink{color:var(--accent); text-decoration:none; font-size:.85em; font-weight:500; cursor:pointer;}
+  .deeplink:hover{text-decoration:underline;}
+  .explain .note .deeplink{font-size:1em;}
+  #step4-deep{scroll-margin-top:16px; border-color:#1f6feb55; box-shadow:0 0 0 1px #1f6feb22;}
+  #step4-deep h2{color:var(--accent);}
+  #step4-deep h2 .deeplink{float:right;}
+  :target{animation:flash 1.6s ease;}
+  @keyframes flash{0%{box-shadow:0 0 0 2px var(--accent);}100%{box-shadow:0 0 0 1px #1f6feb22;}}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="top">
   <h1>Infinite Power Tower &nbsp;<span style="color:var(--accent)">x<sup>x<sup>x<sup>x···</sup></sup></sup> = a</span></h1>
   <p class="sub">Choose the value the tower converges to, watch it build up, and read off the powers of x.</p>
 
@@ -121,12 +130,13 @@
     <p>Notice <span class="m">x<sup>a</sup> = a</span> by construction, so when <span class="m">a = 2</span> the square lands exactly on the target:
     <span class="m">x<sup>2</sup> = 2</span>. The cube is <span class="m">x<sup>3</sup> = 2<sup>3/2</sup> = 2√2 ≈ 2.82843</span>.</p>
 
-    <h3>4. When does the tower actually converge?</h3>
+    <h3>4. When does the tower actually converge? <a class="deeplink" href="#step4-deep">— full derivation ↓</a></h3>
     <p>Not every base works. The infinite tower settles to a finite value only when</p>
     <div class="eq">e<sup>−e</sup> ≤ x ≤ e<sup>1/e</sup> &nbsp;&nbsp;(≈ 0.0660 ≤ x ≤ 1.4447)</div>
     <p>which in terms of the target means <span class="m">1/e ≤ a ≤ e</span> (≈ 0.368 to 2.718). The upper limit <span class="m">e<sup>1/e</sup></span> is the
     tallest base that still converges, and it produces the largest possible tower value <span class="m">a = e</span>. Push <span class="m">x</span> any higher and the
     iteration <span class="m">t ↦ x<sup>t</sup></span> runs off to infinity — that's the red <i>diverges</i> badge.</p>
+    <p class="note"><a class="deeplink" href="#step4-deep">▸ Where do the magic bounds <span class="m">e<sup>−e</sup></span> and <span class="m">e<sup>1/e</sup></span> come from? Click for Euler's derivation (parts a–e).</a></p>
 
     <h3>5. The √2 paradox (why 2 and not 4)</h3>
     <p>Here's the classic puzzle. The equation <span class="m">x<sup>a</sup> = a</span> with <span class="m">x = √2</span> is satisfied by
@@ -146,6 +156,52 @@
     <canvas id="map" width="1040" height="260"></canvas>
     <p class="note">The curve <code>a = x<sup>1/x</sup></code> peaks at <code>x = e ≈ 2.718</code>, where <code>a = e<sup>1/e</sup> ≈ 1.4447</code> — the largest value an infinite tower can reach.
       The famous twist: <code>x = √2</code> makes the tower converge to <b>2</b>, even though √2<sup>4</sup>=4 also "solves" x<sup>a</sup>=a. Only the lower root is stable.</p>
+  </div>
+
+  <!-- ===== STEP 4 DEEP DIVE ===== -->
+  <div class="panel explain" id="step4-deep" style="margin-top:20px;">
+    <h2>Step 4, in full — Euler's convergence bounds <a class="deeplink" href="#top">↑ back to top</a></h2>
+    <p>Why exactly <span class="m">e<sup>−e</sup> ≤ x ≤ e<sup>1/e</sup></span>? This was settled by <b>Leonhard Euler</b> in 1783. The whole result drops out of
+    treating the tower as a <i>repeated function</i> and asking when that repetition has somewhere stable to land.</p>
+
+    <h3>(a) The tower is just one function, applied over and over</h3>
+    <p>Building the tower means starting at <span class="m">t₀ = x</span> and repeatedly applying the map</p>
+    <div class="eq">f(t) = x<sup>&thinsp;t</sup></div>
+    <p>So <span class="m">t₁ = x<sup>x</sup></span>, <span class="m">t₂ = x<sup>x<sup>x</sup></sup></span>, and so on: <span class="m">tₙ₊₁ = f(tₙ)</span>.
+    The infinite tower converges exactly when this sequence approaches a <b>fixed point</b> — a value <span class="m">t*</span> that the map leaves unchanged.</p>
+
+    <h3>(b) The fixed-point equation</h3>
+    <p>A fixed point satisfies <span class="m">f(t*) = t*</span>, i.e.</p>
+    <div class="eq">x<sup>&thinsp;t*</sup> = t* &nbsp;&nbsp;⟺&nbsp;&nbsp; t*·ln&thinsp;x = ln&thinsp;t*</div>
+    <p>(take logs of both sides). This is the same <span class="m">x<sup>a</sup>=a</span> relation from Step 2, now seen as the <i>landing spot</i> of the iteration.
+    But existing isn't enough — the iteration also has to actually <em>fall toward</em> it.</p>
+
+    <h3>(c) The stability test (the heart of it)</h3>
+    <p>Near a fixed point, one more step multiplies the error by the slope <span class="m">f′(t*)</span>. Differentiate <span class="m">f(t)=x<sup>t</sup></span>:</p>
+    <div class="eq">f′(t) = x<sup>&thinsp;t</sup>·ln&thinsp;x &nbsp;&nbsp;⟹&nbsp;&nbsp; f′(t*) = t*·ln&thinsp;x</div>
+    <p>(using <span class="m">x<sup>t*</sup>=t*</span>). Errors <b>shrink</b> only if the slope's magnitude is below 1:</p>
+    <div class="eq">|&thinsp;t*·ln&thinsp;x&thinsp;| ≤ 1</div>
+    <p>Outside this band the slope is steeper than 1, so every step <em>magnifies</em> the gap and the tower flies off — diverges. The bounds are wherever this slope hits exactly <span class="m">±1</span>.</p>
+
+    <h3>(d) Solving the two boundaries</h3>
+    <p><b>Upper boundary</b> — set the slope to <span class="m">+1</span>:</p>
+    <div class="eq">t*·ln&thinsp;x = 1 &nbsp;and&nbsp; t*·ln&thinsp;x = ln&thinsp;t* &nbsp;⟹&nbsp; ln&thinsp;t* = 1 &nbsp;⟹&nbsp; t* = e<br>
+    then ln&thinsp;x = 1/t* = 1/e &nbsp;⟹&nbsp; <b>x = e<sup>1/e</sup> ≈ 1.4447</b></div>
+    <p>At this base the tower tops out at <span class="m">t* = e</span> — the largest value any infinite tower can reach.</p>
+    <p><b>Lower boundary</b> — set the slope to <span class="m">−1</span>:</p>
+    <div class="eq">t*·ln&thinsp;x = −1 &nbsp;and&nbsp; t*·ln&thinsp;x = ln&thinsp;t* &nbsp;⟹&nbsp; ln&thinsp;t* = −1 &nbsp;⟹&nbsp; t* = 1/e<br>
+    then ln&thinsp;x = −1/t* = −e &nbsp;⟹&nbsp; <b>x = e<sup>−e</sup> ≈ 0.0660</b></div>
+    <p>Here the tower bottoms out at <span class="m">t* = 1/e</span>. Below this base the even/odd partial towers split into a 2-cycle and never settle on one number.</p>
+
+    <h3>(e) Putting it together</h3>
+    <p>The infinite tower converges to a single finite value precisely on the closed interval</p>
+    <div class="eq">e<sup>−e</sup> ≤ x ≤ e<sup>1/e</sup> &nbsp;&nbsp;&nbsp;(0.0660 … 1.4447)</div>
+    <p>and the value it converges to, <span class="m">a = t*</span>, sweeps the range <span class="m">1/e ≤ a ≤ e</span> (≈ 0.368 … 2.718).
+    That's why the green band in the map above sits exactly where it does, and why dragging the slider past <span class="m">a = e</span> flips the badge to
+    <span style="color:var(--bad)">diverges ✗</span>. The √2 case in Step 5 is just one stable point comfortably inside this band
+    (<span class="m">|2·ln√2| = ln 2 ≈ 0.69 &lt; 1</span>), while its rival <span class="m">a = 4</span> sits outside it
+    (<span class="m">|4·ln√2| = 2 ln 2 ≈ 1.39 &gt; 1</span>) — unreachable.</p>
+    <p class="note" style="margin-top:14px;">Footnote: at the two endpoints the slope is exactly <span class="m">±1</span> (neutrally stable), so convergence there is real but only as fast as <span class="m">1/n</span> — agonizingly slow compared to the geometric snap you see in the middle of the band.</p>
   </div>
 </div>
 

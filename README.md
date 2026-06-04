@@ -4,7 +4,9 @@ An interactive, single-file visualization of the infinite power tower (tetration
 
 $$x^{x^{x^{x^{\cdots}}}} = a$$
 
-Open [`power-tower.html`](power-tower.html) in any browser — no build, no dependencies.
+**Live:** [tetration.vivaanshahani.com](https://tetration.vivaanshahani.com)
+
+Or open [`index.html`](index.html) in any browser — no build, no dependencies.
 
 ## What it shows
 
