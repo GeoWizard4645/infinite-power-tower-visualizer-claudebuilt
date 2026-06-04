@@ -58,6 +58,22 @@
   #step4-deep h2 .deeplink{float:right;}
   :target{animation:flash 1.6s ease;}
   @keyframes flash{0%{box-shadow:0 0 0 2px var(--accent);}100%{box-shadow:0 0 0 1px #1f6feb22;}}
+  .diffbox{background:#0a0e14; border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin:6px 0 22px;}
+  .diff-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;}
+  .diff-head label{margin:0; font-size:13px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted);}
+  .diff-name{font-size:18px; font-weight:700; color:var(--accent);}
+  .diffbox input[type=range]{width:100%; accent-color:var(--accent);}
+  .diff-ticks{display:flex; justify-content:space-between; margin-top:6px; font-size:11px; color:var(--muted);}
+  .diff-ticks span{flex:1; text-align:center;}
+  .diff-ticks span:first-child{text-align:left;} .diff-ticks span:last-child{text-align:right;}
+  .diff-hint{font-size:13.5px; color:#c9d3de; margin:12px 0 0; font-style:italic;}
+  .bridge{background:rgba(240,136,62,.08); border-left:3px solid var(--warn); border-radius:6px;
+          padding:10px 14px; margin:14px 0; font-size:14px; color:#e8d3bf;}
+  .bridge b{color:var(--warn);}
+  #step4Body .idea{margin:2px 0 8px; font-size:13.5px; color:#88c0a8; font-style:italic;}
+  #step4Body h3{transition:color .2s;}
+  #step4Body p{animation:fadein .25s ease;}
+  @keyframes fadein{from{opacity:.3;}to{opacity:1;}}
 </style>
 </head>
 <body>
@@ -160,48 +176,21 @@
 
   <!-- ===== STEP 4 DEEP DIVE ===== -->
   <div class="panel explain" id="step4-deep" style="margin-top:20px;">
-    <h2>Step 4, in full — Euler's convergence bounds <a class="deeplink" href="#top">↑ back to top</a></h2>
-    <p>Why exactly <span class="m">e<sup>−e</sup> ≤ x ≤ e<sup>1/e</sup></span>? This was settled by <b>Leonhard Euler</b> in 1783. The whole result drops out of
-    treating the tower as a <i>repeated function</i> and asking when that repetition has somewhere stable to land.</p>
+    <h2>Step 4, in full — why only some bases work <a class="deeplink" href="#top">↑ back to top</a></h2>
 
-    <h3>(a) The tower is just one function, applied over and over</h3>
-    <p>Building the tower means starting at <span class="m">t₀ = x</span> and repeatedly applying the map</p>
-    <div class="eq">f(t) = x<sup>&thinsp;t</sup></div>
-    <p>So <span class="m">t₁ = x<sup>x</sup></span>, <span class="m">t₂ = x<sup>x<sup>x</sup></sup></span>, and so on: <span class="m">tₙ₊₁ = f(tₙ)</span>.
-    The infinite tower converges exactly when this sequence approaches a <b>fixed point</b> — a value <span class="m">t*</span> that the map leaves unchanged.</p>
+    <div class="diffbox">
+      <div class="diff-head">
+        <label for="lvlSlider">Explanation level</label>
+        <span class="diff-name" id="lvlName">🔍 Curious</span>
+      </div>
+      <input type="range" id="lvlSlider" min="1" max="5" step="1" value="3">
+      <div class="diff-ticks">
+        <span>🧸 Like I'm 5</span><span>🗣️ Plain</span><span>🔍 Curious</span><span>📐 Student</span><span>🎓 Rigor</span>
+      </div>
+      <p class="diff-hint" id="lvlHint"></p>
+    </div>
 
-    <h3>(b) The fixed-point equation</h3>
-    <p>A fixed point satisfies <span class="m">f(t*) = t*</span>, i.e.</p>
-    <div class="eq">x<sup>&thinsp;t*</sup> = t* &nbsp;&nbsp;⟺&nbsp;&nbsp; t*·ln&thinsp;x = ln&thinsp;t*</div>
-    <p>(take logs of both sides). This is the same <span class="m">x<sup>a</sup>=a</span> relation from Step 2, now seen as the <i>landing spot</i> of the iteration.
-    But existing isn't enough — the iteration also has to actually <em>fall toward</em> it.</p>
-
-    <h3>(c) The stability test (the heart of it)</h3>
-    <p>Near a fixed point, one more step multiplies the error by the slope <span class="m">f′(t*)</span>. Differentiate <span class="m">f(t)=x<sup>t</sup></span>:</p>
-    <div class="eq">f′(t) = x<sup>&thinsp;t</sup>·ln&thinsp;x &nbsp;&nbsp;⟹&nbsp;&nbsp; f′(t*) = t*·ln&thinsp;x</div>
-    <p>(using <span class="m">x<sup>t*</sup>=t*</span>). Errors <b>shrink</b> only if the slope's magnitude is below 1:</p>
-    <div class="eq">|&thinsp;t*·ln&thinsp;x&thinsp;| ≤ 1</div>
-    <p>Outside this band the slope is steeper than 1, so every step <em>magnifies</em> the gap and the tower flies off — diverges. The bounds are wherever this slope hits exactly <span class="m">±1</span>.</p>
-
-    <h3>(d) Solving the two boundaries</h3>
-    <p><b>Upper boundary</b> — set the slope to <span class="m">+1</span>:</p>
-    <div class="eq">t*·ln&thinsp;x = 1 &nbsp;and&nbsp; t*·ln&thinsp;x = ln&thinsp;t* &nbsp;⟹&nbsp; ln&thinsp;t* = 1 &nbsp;⟹&nbsp; t* = e<br>
-    then ln&thinsp;x = 1/t* = 1/e &nbsp;⟹&nbsp; <b>x = e<sup>1/e</sup> ≈ 1.4447</b></div>
-    <p>At this base the tower tops out at <span class="m">t* = e</span> — the largest value any infinite tower can reach.</p>
-    <p><b>Lower boundary</b> — set the slope to <span class="m">−1</span>:</p>
-    <div class="eq">t*·ln&thinsp;x = −1 &nbsp;and&nbsp; t*·ln&thinsp;x = ln&thinsp;t* &nbsp;⟹&nbsp; ln&thinsp;t* = −1 &nbsp;⟹&nbsp; t* = 1/e<br>
-    then ln&thinsp;x = −1/t* = −e &nbsp;⟹&nbsp; <b>x = e<sup>−e</sup> ≈ 0.0660</b></div>
-    <p>Here the tower bottoms out at <span class="m">t* = 1/e</span>. Below this base the even/odd partial towers split into a 2-cycle and never settle on one number.</p>
-
-    <h3>(e) Putting it together</h3>
-    <p>The infinite tower converges to a single finite value precisely on the closed interval</p>
-    <div class="eq">e<sup>−e</sup> ≤ x ≤ e<sup>1/e</sup> &nbsp;&nbsp;&nbsp;(0.0660 … 1.4447)</div>
-    <p>and the value it converges to, <span class="m">a = t*</span>, sweeps the range <span class="m">1/e ≤ a ≤ e</span> (≈ 0.368 … 2.718).
-    That's why the green band in the map above sits exactly where it does, and why dragging the slider past <span class="m">a = e</span> flips the badge to
-    <span style="color:var(--bad)">diverges ✗</span>. The √2 case in Step 5 is just one stable point comfortably inside this band
-    (<span class="m">|2·ln√2| = ln 2 ≈ 0.69 &lt; 1</span>), while its rival <span class="m">a = 4</span> sits outside it
-    (<span class="m">|4·ln√2| = 2 ln 2 ≈ 1.39 &gt; 1</span>) — unreachable.</p>
-    <p class="note" style="margin-top:14px;">Footnote: at the two endpoints the slope is exactly <span class="m">±1</span> (neutrally stable), so convergence there is real but only as fast as <span class="m">1/n</span> — agonizingly slow compared to the geometric snap you see in the middle of the band.</p>
+    <div id="step4Body"></div>
   </div>
 </div>
 
@@ -313,6 +302,112 @@ function update(){
   drawConv(x, a);
   drawMap(x, a);
 }
+
+/* ===== Step 4 difficulty slider ===== */
+const LVLS=[
+  {name:"🧸 Like I'm 5", hint:"Pure pictures — magic buttons, marbles, and bowls. No symbols at all."},
+  {name:"🗣️ Plain English", hint:"Everyday words. The full idea with almost no notation."},
+  {name:"🔍 Curious", hint:"The real reasoning with light math — slopes and resting points."},
+  {name:"📐 Student", hint:"Calculus level: differentiate the map and solve both boundaries."},
+  {name:"🎓 Full rigor", hint:"Formal: the multiplier criterion |f′(t*)| ≤ 1 and the edge cases."},
+];
+
+const PARTS=[
+  { // intro (no title)
+    body:[
+      `Some numbers work in the tower and some blow up. Let's find out <i>which</i> — using a magic button and a marble. 🧸`,
+      `Why do only bases between about <span class="m">0.066</span> and <span class="m">1.444</span> work? Here's the whole reason, in plain words.`,
+      `Why exactly <span class="m">e<sup>−e</sup></span> and <span class="m">e<sup>1/e</sup></span>? It falls out of treating the tower as one repeated step and asking when that step has somewhere stable to settle. <b>Euler</b> proved this in 1783.`,
+      `<b>Euler (1783)</b> treated the tower as iterating <span class="m">f(t)=x<sup>t</sup></span> and applied fixed‑point stability. Here is that argument, step by step.`,
+      `The convergence interval is the stability region of the fixed point of <span class="m">f(t)=x<sup>t</sup></span>, obtained from the multiplier criterion <span class="m">|f′(t*)| ≤ 1</span>.`,
+    ]
+  },
+  {
+    title:"(a) Doing one little thing, over and over",
+    idea:"Building the tower = repeating a single step forever.",
+    body:[
+      `Pretend you have a magic button. 🔘 You're holding a number; press the button and it becomes <b>x stacked on top</b> of that number. Press again. Again. Forever. The tower is just pressing that button over and over!`,
+      `To build the tower you start at <span class="m">x</span> and keep repeating one move: "raise x to whatever you're holding." Each press adds one floor. We say the tower <b>converges</b> if those numbers stop jumping around and settle near one value.`,
+      `Start at <span class="m">t₀ = x</span> and repeatedly apply <span class="m">f(t)=x<sup>t</sup></span>: <span class="m">t₁=x<sup>x</sup></span>, <span class="m">t₂=x<sup>x<sup>x</sup></sup></span>, … The tower converges exactly when this sequence homes in on one value.`,
+      `Define the orbit <span class="m">tₙ₊₁ = f(tₙ)</span> with <span class="m">f(t)=x<sup>t</sup></span> and <span class="m">t₀=x</span>. Tower convergence is the same thing as convergence of this orbit.`,
+      `Let <span class="m">f(t)=x<sup>t</sup></span> and consider the orbit <span class="m">(tₙ)</span> with <span class="m">t₀=x</span>, <span class="m">tₙ₊₁=f(tₙ)</span>. The tetration converges iff <span class="m">(tₙ)</span> converges.`,
+    ],
+    eq:`f(t) = x<sup>&thinsp;t</sup>`, eqMin:3
+  },
+  {
+    title:"(b) A number that doesn't budge",
+    idea:"There may be a special “resting” number the step leaves unchanged — that's the tower's answer.",
+    body:[
+      `Some numbers are magic resting spots: press the button and the number stays <b>exactly the same</b>! 🛑 If the tower reaches one, it stops there — and that resting number is the answer.`,
+      `Sooner or later the tower might hit a number where pressing the button gives the <b>same number back</b>. It stops moving. That frozen number is what the tower equals.`,
+      `A resting value <span class="m">t*</span> satisfies <span class="m">f(t*)=t*</span>, i.e. <span class="m">x<sup>t*</sup>=t*</span>. Take logs: <span class="m">t*·ln x = ln t*</span>. (Same <span class="m">x<sup>a</sup>=a</span> as Step 2 — now seen as the iteration's landing spot.)`,
+      `Fixed points solve <span class="m">f(t*)=t*</span> ⟺ <span class="m">x<sup>t*</sup>=t*</span> ⟺ <span class="m">t*·ln x = ln t*</span>.`,
+      `Fixed points satisfy <span class="m">f(t*)=t*</span>, equivalently <span class="m">t* ln x = ln t*</span>. Existence is <i>necessary</i> but not <i>sufficient</i> for the orbit to converge.`,
+    ],
+    eq:`x<sup>&thinsp;t*</sup> = t* &nbsp;&nbsp;⟺&nbsp;&nbsp; t*·ln&thinsp;x = ln&thinsp;t*`, eqMin:3
+  },
+  {
+    bridge:`A resting spot <i>existing</i> isn't enough. A marble can balance on a <b>hilltop</b> — technically "at rest," yet the tiniest nudge sends it rolling away. We need resting spots you fall <b>into</b>, not ones you fall <b>off of</b>.`
+  },
+  {
+    title:"(c) Does a wobble grow or shrink?",
+    idea:"Near the resting spot each step either pulls you closer (good) or pushes you away (bad). That one thing decides everything.",
+    body:[
+      `Picture a marble. In a bowl 🥣 it always rolls back to the bottom — that spot is <b>sticky</b>. On a hill ⛰️ it rolls away. The tower only works when its resting number is <b>bowl‑like</b>, not hill‑like.`,
+      `Imagine a marble sitting at the resting number. In a bowl, any little wobble rolls back and the tower settles. On a hill, the wobble grows and the tower runs off. What decides bowl‑vs‑hill is <b>how steeply</b> the button changes things right there.`,
+      `Near a fixed point, each step multiplies your distance‑to‑it by the slope <span class="m">f′(t*)</span>. Slope below 1 → errors shrink (a sticky <i>attractor</i>); above 1 → they grow (a <i>repeller</i>). Since <span class="m">f′(t)=x<sup>t</sup>·ln x</span>, we get <span class="m">f′(t*)=t*·ln x</span>. Stable when <span class="m">|t*·ln x| ≤ 1</span>.`,
+      `Linearize: <span class="m">tₙ₊₁−t* ≈ f′(t*)(tₙ−t*)</span>. Differentiating <span class="m">f(t)=x<sup>t</sup></span> gives <span class="m">f′(t)=x<sup>t</sup> ln x</span>, so <span class="m">f′(t*)=t*·ln x</span>. The point attracts iff <span class="m">|t*·ln x|&lt;1</span>.`,
+      `By the mean value theorem the local contraction factor is the multiplier <span class="m">|f′(t*)| = |t*·ln x|</span>; the fixed point is attracting iff this is <span class="m">&lt;1</span> (neutral at <span class="m">=1</span>).`,
+    ],
+    eq:`f′(t*) = t*·ln&thinsp;x &nbsp;&nbsp;⟹&nbsp;&nbsp; stable when &nbsp;|&thinsp;t*·ln&thinsp;x&thinsp;| ≤ 1`, eqMin:3
+  },
+  {
+    title:"(d) Where exactly are the edges?",
+    idea:"The edges of “works” are where the wobble neither grows nor shrinks — slope exactly ±1. Solve those and out pop the magic numbers.",
+    body:[
+      `The cutoff is where the marble's spot is <b>perfectly flat</b> — not a bowl, not a hill. There are two flat edges: a low one and a high one. Those two edges <b>are</b> the famous numbers, about <span class="m">0.066</span> and <span class="m">1.444</span>. 🎯`,
+      `The boundary is where the slope is exactly 1 (or −1) — the knife‑edge between bowl and hill. Work out those two edges and you get the two magic bases: a high one <span class="m">≈ 1.444</span> and a low one <span class="m">≈ 0.066</span>.`,
+      `Set the slope to its limits. <b>Upper edge:</b> <span class="m">t*·ln x = 1</span> together with <span class="m">t*·ln x = ln t*</span> gives <span class="m">ln t* = 1</span>, so <span class="m">t* = e</span> and <span class="m">x = e<sup>1/e</sup> ≈ 1.4447</span>. <b>Lower edge:</b> <span class="m">t*·ln x = −1</span> gives <span class="m">ln t* = −1</span>, so <span class="m">t* = 1/e</span> and <span class="m">x = e<sup>−e</sup> ≈ 0.0660</span>.`,
+      `<b>Upper:</b> multiplier <span class="m">= 1</span> with <span class="m">t* ln x = ln t*</span> ⟹ <span class="m">ln t*=1</span> ⟹ <span class="m">t*=e</span> ⟹ <span class="m">x=e<sup>1/e</sup></span>. <b>Lower:</b> multiplier <span class="m">= −1</span> ⟹ <span class="m">ln t*=−1</span> ⟹ <span class="m">t*=1/e</span> ⟹ <span class="m">x=e<sup>−e</sup></span>.`,
+      `Boundaries occur where <span class="m">|f′(t*)|=1</span>. Combining <span class="m">t* ln x = ±1</span> with <span class="m">t* ln x = ln t*</span> yields <span class="m">ln t* = ±1</span>, hence <span class="m">t*∈{e, 1/e}</span> and correspondingly <span class="m">x∈{e<sup>1/e</sup>, e<sup>−e</sup>}</span>.`,
+    ],
+    eq:`t*·ln&thinsp;x = 1 = ln&thinsp;t* &nbsp;⟹&nbsp; t* = e &nbsp;⟹&nbsp; <b>x = e<sup>1/e</sup> ≈ 1.4447</b><br>t*·ln&thinsp;x = −1 = ln&thinsp;t* &nbsp;⟹&nbsp; t* = 1/e &nbsp;⟹&nbsp; <b>x = e<sup>−e</sup> ≈ 0.0660</b>`, eqMin:3
+  },
+  {
+    title:"(e) The whole rule",
+    idea:"Stitch the two edges together: between them, the tower behaves.",
+    body:[
+      `So the tower only behaves when <span class="m">x</span> is between those two magic numbers — about <span class="m">0.066</span> and <span class="m">1.444</span>. Push <span class="m">x</span> outside and it either blows up to infinity or never settles. That's the whole answer! ✅`,
+      `Putting the edges together: the tower converges exactly when <span class="m">x</span> sits between <span class="m">e<sup>−e</sup> ≈ 0.066</span> and <span class="m">e<sup>1/e</sup> ≈ 1.444</span>. The value it lands on ranges from about <span class="m">0.37</span> up to <span class="m">2.72</span> (= e). That's the green band on the graph.`,
+      `Convergence holds precisely on <span class="m">e<sup>−e</sup> ≤ x ≤ e<sup>1/e</sup></span>, and the value reached sweeps <span class="m">1/e ≤ a ≤ e</span>. That's the green band above; drag <span class="m">a</span> past <span class="m">e</span> and the badge flips to <span style="color:var(--bad)">diverges ✗</span>. The <span class="m">√2</span> case (Step 5) sits comfortably inside: <span class="m">|2·ln√2| = ln 2 ≈ 0.69 &lt; 1</span>, while its rival <span class="m">a = 4</span> is outside: <span class="m">2 ln 2 ≈ 1.39 &gt; 1</span> — unreachable.`,
+      `The tetration converges to a single finite value precisely on the closed interval below; the limit <span class="m">a = t*</span> sweeps <span class="m">[1/e, e]</span>. This is exactly the green band, and the √2 paradox of Step 5 is the stable root <span class="m">a=2</span> (<span class="m">|2 ln√2|&lt;1</span>) versus the unstable <span class="m">a=4</span> (<span class="m">|4 ln√2|&gt;1</span>).`,
+      `Convergence set: <span class="m">x ∈ [e<sup>−e</sup>, e<sup>1/e</sup>]</span>, with limit <span class="m">t* ∈ [1/e, e]</span>. The endpoints are included but only marginally — see the footnote.`,
+    ],
+    eq:`e<sup>−e</sup> ≤ x ≤ e<sup>1/e</sup> &nbsp;&nbsp;&nbsp;(0.0660 … 1.4447)`, eqMin:1,
+    footnote:`At the two endpoints the multiplier is exactly <span class="m">±1</span> (neutrally stable): convergence still happens, but only as slowly as <span class="m">~1/n</span>, versus the geometric snap you see in the middle of the band.`, footMin:4
+  },
+];
+
+function renderStep4(lv){
+  let html='';
+  for(const p of PARTS){
+    if(p.bridge){ html+=`<div class="bridge"><b>💡 Gut‑check:</b> ${p.bridge}</div>`; continue; }
+    if(p.title) html+=`<h3>${p.title}</h3>`;
+    if(p.idea)  html+=`<p class="idea">↳ ${p.idea}</p>`;
+    html+=`<p>${p.body[lv-1]}</p>`;
+    if(p.eq && lv>=(p.eqMin||1)) html+=`<div class="eq">${p.eq}</div>`;
+    if(p.footnote && lv>=(p.footMin||4)) html+=`<p class="note" style="margin-top:10px;">${p.footnote}</p>`;
+  }
+  $('step4Body').innerHTML=html;
+}
+function setLevel(){
+  const lv=parseInt($('lvlSlider').value,10);
+  $('lvlName').textContent=LVLS[lv-1].name;
+  $('lvlHint').textContent=LVLS[lv-1].hint;
+  renderStep4(lv);
+}
+$('lvlSlider').addEventListener('input',setLevel);
+setLevel();
 
 $('aSlider').addEventListener('input',update);
 update();
